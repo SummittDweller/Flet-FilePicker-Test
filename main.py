@@ -6,6 +6,10 @@ A simple test application to demonstrate FilePicker functionality in Flet on mac
 
 import flet as ft
 
+# File extension filters
+SINGLE_FILE_EXTENSIONS = ["txt", "pdf", "png", "jpg", "jpeg"]
+SAVE_FILE_EXTENSIONS = ["txt", "log", "md"]
+
 
 def main(page: ft.Page):
     page.title = "Flet FilePicker Test"
@@ -77,7 +81,7 @@ def main(page: ft.Page):
         status_text.color = ft.colors.BLUE_400
         page.update()
         file_picker.pick_files(
-            allowed_extensions=["txt", "pdf", "png", "jpg", "jpeg"],
+            allowed_extensions=SINGLE_FILE_EXTENSIONS,
             dialog_title="Pick a single file"
         )
     
@@ -105,7 +109,7 @@ def main(page: ft.Page):
         save_file_picker.save_file(
             dialog_title="Save file as...",
             file_name="output.txt",
-            allowed_extensions=["txt", "log", "md"]
+            allowed_extensions=SAVE_FILE_EXTENSIONS
         )
     
     # Create UI

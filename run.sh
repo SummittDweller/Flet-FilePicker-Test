@@ -8,7 +8,7 @@ cd "$(dirname "$0")"
 # Check if .venv exists
 if [ ! -d ".venv" ]; then
     echo "Error: Virtual environment not found!"
-    echo "Please run: python3 -m venv .venv && .venv/bin/pip install flet"
+    echo "Please run: ./setup.sh"
     exit 1
 fi
 
