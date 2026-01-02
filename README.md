@@ -22,7 +22,13 @@ The app is built with [Flet](https://flet.dev/) 0.80.0 and includes the necessar
 
 ### 1. Setup Virtual Environment
 
-The virtual environment is already created with Flet installed. If you need to recreate it:
+For initial setup or if the virtual environment is missing, run:
+
+```bash
+./setup.sh
+```
+
+This will create the virtual environment and install all dependencies. If you prefer to do it manually:
 
 ```bash
 python3 -m venv .venv
@@ -69,6 +75,7 @@ flet-test
 Flet-FilePicker-Test/
 ├── .venv/              # Virtual environment (not in git)
 ├── main.py             # Main Flet application
+├── setup.sh            # Initial setup script
 ├── run.sh              # Development run script
 ├── build-macos.sh      # macOS build script with entitlements
 ├── requirements.txt    # Python dependencies
