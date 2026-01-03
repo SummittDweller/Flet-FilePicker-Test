@@ -6,6 +6,7 @@ A simple test application to demonstrate FilePicker functionality in Flet on mac
 
 import flet as ft
 from datetime import datetime
+import os
 
 # File extension filters
 SINGLE_FILE_EXTENSIONS = ["txt", "pdf", "png", "jpg", "jpeg"]
@@ -27,6 +28,15 @@ def log_message(message):
 def main(page: ft.Page):
     page.title = "Flet FilePicker Test"
     page.padding = 20
+    
+    # Set app icon for dock and window (use ICNS for macOS)
+    icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "app_icon.icns"))
+    if os.path.exists(icon_path):
+        page.window.icon = icon_path
+        page.update()  # Update to apply icon
+        log_message(f"App icon set: {icon_path}")
+    else:
+        log_message(f"App icon not found: {icon_path}")
     
     log_message("Application started")
     
