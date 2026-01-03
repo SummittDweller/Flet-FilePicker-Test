@@ -5,17 +5,30 @@ A simple test application to demonstrate FilePicker functionality in Flet on mac
 """
 
 import flet as ft
+from datetime import datetime
 
 # File extension filters
 SINGLE_FILE_EXTENSIONS = ["txt", "pdf", "png", "jpg", "jpeg"]
 SAVE_FILE_EXTENSIONS = ["txt", "log", "md"]
 
+# Log storage
+log_entries = []
+
+
+def log_message(message):
+    """Add a timestamped log entry."""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    entry = f"[{timestamp}] {message}"
+    log_entries.append(entry)
+    print(entry)
+    return entry
+
 
 def main(page: ft.Page):
     page.title = "Flet FilePicker Test"
-    page.window.width = 600
-    page.window.height = 500
     page.padding = 20
+    
+    log_message("Application started")
     
     # Create a result text display
     result_text = ft.Text(
@@ -27,90 +40,128 @@ def main(page: ft.Page):
     # Status text
     status_text = ft.Text(
         "Ready to pick files",
-        color=ft.colors.BLUE_400,
+        color=ft.Colors.BLUE_400,
         size=14,
         italic=True
     )
     
-    # FilePicker result handler
-    def pick_files_result(e: ft.FilePickerResultEvent):
-        if e.files:
-            selected_files = "\n".join([f.path for f in e.files])
-            result_text.value = f"Selected file(s):\n{selected_files}"
-            status_text.value = f"{len(e.files)} file(s) selected"
-            status_text.color = ft.colors.GREEN_400
-        else:
-            result_text.value = "No file selected (cancelled)"
-            status_text.value = "File selection cancelled"
-            status_text.color = ft.colors.ORANGE_400
-        page.update()
-    
-    def pick_directory_result(e: ft.FilePickerResultEvent):
-        if e.path:
-            result_text.value = f"Selected directory:\n{e.path}"
-            status_text.value = "Directory selected"
-            status_text.color = ft.colors.GREEN_400
-        else:
-            result_text.value = "No directory selected (cancelled)"
-            status_text.value = "Directory selection cancelled"
-            status_text.color = ft.colors.ORANGE_400
-        page.update()
-    
-    def save_file_result(e: ft.FilePickerResultEvent):
-        if e.path:
-            result_text.value = f"Save file path:\n{e.path}"
-            status_text.value = "Save path selected"
-            status_text.color = ft.colors.GREEN_400
-        else:
-            result_text.value = "Save file cancelled"
-            status_text.value = "Save operation cancelled"
-            status_text.color = ft.colors.ORANGE_400
-        page.update()
-    
-    # Create FilePicker instances
-    file_picker = ft.FilePicker(on_result=pick_files_result)
-    directory_picker = ft.FilePicker(on_result=pick_directory_result)
-    save_file_picker = ft.FilePicker(on_result=save_file_result)
-    
-    # Add pickers to overlay
-    page.overlay.extend([file_picker, directory_picker, save_file_picker])
-    
     # Button handlers
-    def pick_single_file(e):
+    async def pick_single_file(e):
+        log_message("Pick Single File button clicked")
         status_text.value = "Opening file picker..."
-        status_text.color = ft.colors.BLUE_400
+        status_text.color = ft.Colors.BLUE_400
         page.update()
-        file_picker.pick_files(
+        
+        files = await file_picker.pick_files(
             allowed_extensions=SINGLE_FILE_EXTENSIONS,
             dialog_title="Pick a single file"
         )
-    
-    def pick_multiple_files(e):
-        status_text.value = "Opening file picker..."
-        status_text.color = ft.colors.BLUE_400
+        
+        if files:
+            selected_files = "\n".join([f.path for f in files])
+            result_text.value = f"Selected file(s):\n{selected_files}"
+            status_text.value = f"{len(files)} file(s) selected"
+            status_text.color = ft.Colors.GREEN_400
+            log_message(f"Selected {len(files)} file(s): {', '.join([f.name for f in files])}")
+        else:
+            result_text.value = "No file selected (cancelled)"
+            status_text.value = "File selection cancelled"
+            status_text.color = ft.Colors.ORANGE_400
+            log_message("File selection cancelled")
         page.update()
-        file_picker.pick_files(
+    
+    async def pick_multiple_files(e):
+        log_message("Pick Multiple Files button clicked")
+        status_text.value = "Opening file picker..."
+        status_text.color = ft.Colors.BLUE_400
+        page.update()
+        
+        files = await file_picker.pick_files(
             allow_multiple=True,
             dialog_title="Pick multiple files"
         )
-    
-    def pick_dir(e):
-        status_text.value = "Opening directory picker..."
-        status_text.color = ft.colors.BLUE_400
+        
+        if files:
+            selected_files = "\n".join([f.path for f in files])
+            result_text.value = f"Selected file(s):\n{selected_files}"
+            status_text.value = f"{len(files)} file(s) selected"
+            status_text.color = ft.Colors.GREEN_400
+            log_message(f"Selected {len(files)} file(s): {', '.join([f.name for f in files])}")
+        else:
+            result_text.value = "No files selected (cancelled)"
+            status_text.value = "File selection cancelled"
+            status_text.color = ft.Colors.ORANGE_400
+            log_message("Multiple file selection cancelled")
         page.update()
-        directory_picker.get_directory_path(
+    
+    async def pick_dir(e):
+        log_message("Pick Directory button clicked")
+        status_text.value = "Opening directory picker..."
+        status_text.color = ft.Colors.BLUE_400
+        page.update()
+        
+        path = await directory_picker.get_directory_path(
             dialog_title="Pick a directory"
         )
-    
-    def save_file(e):
-        status_text.value = "Opening save dialog..."
-        status_text.color = ft.colors.BLUE_400
+        
+        if path:
+            result_text.value = f"Selected directory:\n{path}"
+            status_text.value = "Directory selected"
+            status_text.color = ft.Colors.GREEN_400
+            log_message(f"Selected directory: {path}")
+        else:
+            result_text.value = "No directory selected (cancelled)"
+            status_text.value = "Directory selection cancelled"
+            status_text.color = ft.Colors.ORANGE_400
+            log_message("Directory selection cancelled")
         page.update()
-        save_file_picker.save_file(
-            dialog_title="Save file as...",
-            file_name="output.txt",
+    
+    async def save_file(e):
+        log_message("Save File button clicked")
+        status_text.value = "Opening save dialog..."
+        status_text.color = ft.Colors.BLUE_400
+        page.update()
+        
+        path = await save_file_picker.save_file(
+            dialog_title="Save log file as...",
+            file_name="flet_filepicker_test.log",
             allowed_extensions=SAVE_FILE_EXTENSIONS
         )
+        
+        if path:
+            try:
+                # Write log entries to file
+                with open(path, 'w') as f:
+                    f.write("Flet FilePicker Test App - Activity Log\n")
+                    f.write("=" * 50 + "\n\n")
+                    for entry in log_entries:
+                        f.write(entry + "\n")
+                
+                result_text.value = f"Log file saved to:\n{path}\n\nTotal log entries: {len(log_entries)}"
+                status_text.value = "Log file saved successfully"
+                status_text.color = ft.Colors.GREEN_400
+                log_message(f"Log file saved to: {path} ({len(log_entries)} entries)")
+            except Exception as ex:
+                result_text.value = f"Error saving file:\n{str(ex)}"
+                status_text.value = "Error saving file"
+                status_text.color = ft.Colors.RED_400
+                log_message(f"Error saving log file: {str(ex)}")
+        else:
+            result_text.value = "Save file cancelled"
+            status_text.value = "Save operation cancelled"
+            status_text.color = ft.Colors.ORANGE_400
+            log_message("Save file operation cancelled")
+        page.update()
+    
+    # Create FilePicker instances
+    file_picker = ft.FilePicker()
+    directory_picker = ft.FilePicker()
+    save_file_picker = ft.FilePicker()
+    
+    # Add pickers to services (not overlay - FilePicker is a Service, not a Control)
+    page.services.append(file_picker)
+    page.services.append(directory_picker)
+    page.services.append(save_file_picker)
     
     # Create UI
     page.add(
@@ -121,9 +172,9 @@ def main(page: ft.Page):
                         "Flet FilePicker Test Application",
                         size=24,
                         weight=ft.FontWeight.BOLD,
-                        color=ft.colors.BLUE_700
+                        color=ft.Colors.BLUE_700
                     ),
-                    ft.Divider(height=20, color=ft.colors.BLUE_200),
+                    ft.Divider(height=20, color=ft.Colors.BLUE_200),
                     ft.Text(
                         "Test FilePicker functionality on macOS:",
                         size=16,
@@ -132,22 +183,22 @@ def main(page: ft.Page):
                     ft.Container(height=10),
                     ft.Row(
                         [
-                            ft.ElevatedButton(
+                            ft.Button(
                                 "Pick Single File",
-                                icon=ft.icons.FILE_OPEN,
+                                icon=ft.Icons.FILE_OPEN,
                                 on_click=pick_single_file,
                                 style=ft.ButtonStyle(
-                                    color=ft.colors.WHITE,
-                                    bgcolor=ft.colors.BLUE_700,
+                                    color=ft.Colors.WHITE,
+                                    bgcolor=ft.Colors.BLUE_700,
                                 )
                             ),
-                            ft.ElevatedButton(
+                            ft.Button(
                                 "Pick Multiple Files",
-                                icon=ft.icons.FILE_OPEN,
+                                icon=ft.Icons.FILE_OPEN,
                                 on_click=pick_multiple_files,
                                 style=ft.ButtonStyle(
-                                    color=ft.colors.WHITE,
-                                    bgcolor=ft.colors.BLUE_500,
+                                    color=ft.Colors.WHITE,
+                                    bgcolor=ft.Colors.BLUE_500,
                                 )
                             ),
                         ],
@@ -157,22 +208,22 @@ def main(page: ft.Page):
                     ft.Container(height=5),
                     ft.Row(
                         [
-                            ft.ElevatedButton(
+                            ft.Button(
                                 "Pick Directory",
-                                icon=ft.icons.FOLDER_OPEN,
+                                icon=ft.Icons.FOLDER_OPEN,
                                 on_click=pick_dir,
                                 style=ft.ButtonStyle(
-                                    color=ft.colors.WHITE,
-                                    bgcolor=ft.colors.GREEN_700,
+                                    color=ft.Colors.WHITE,
+                                    bgcolor=ft.Colors.GREEN_700,
                                 )
                             ),
-                            ft.ElevatedButton(
+                            ft.Button(
                                 "Save File",
-                                icon=ft.icons.SAVE,
+                                icon=ft.Icons.SAVE,
                                 on_click=save_file,
                                 style=ft.ButtonStyle(
-                                    color=ft.colors.WHITE,
-                                    bgcolor=ft.colors.ORANGE_700,
+                                    color=ft.Colors.WHITE,
+                                    bgcolor=ft.Colors.ORANGE_700,
                                 )
                             ),
                         ],
@@ -180,14 +231,14 @@ def main(page: ft.Page):
                         spacing=10
                     ),
                     ft.Container(height=20),
-                    ft.Divider(height=1, color=ft.colors.GREY_300),
+                    ft.Divider(height=1, color=ft.Colors.GREY_300),
                     ft.Container(height=10),
                     status_text,
                     ft.Container(height=10),
                     ft.Container(
                         content=result_text,
-                        bgcolor=ft.colors.GREY_100,
-                        border=ft.border.all(1, ft.colors.GREY_300),
+                        bgcolor=ft.Colors.GREY_100,
+                        border=ft.Border.all(1, ft.Colors.GREY_300),
                         border_radius=8,
                         padding=15,
                         expand=True
@@ -202,4 +253,4 @@ def main(page: ft.Page):
 
 
 if __name__ == "__main__":
-    ft.app(target=main)
+    ft.run(main)
